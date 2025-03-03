@@ -42,362 +42,155 @@ Calculate Shortest Path: It finds the shortest path between two nodes using Dijk
 
 The network graph is visually represented using Swing components, and users can interact with the network, adjust connections, and view optimization results in real-time.
  */
- import java.awt.*;  // Import the AWT package for GUI components
- import java.util.*; // Import utility classes like HashMap, List
- import javax.swing.*; // Import Swing components for GUI elements
- import java.util.List; // Explicitly import the List interface
+import java.awt.*; // Importing classes for GUI components, such as Graphics, Color, and Point.
+import java.util.*; // Importing utility classes, such as HashMap, Map, and Random.
+import javax.swing.*; // Importing Swing components for GUI, such as JFrame, JPanel, JButton, and JOptionPane.
 
- 
- // Main class for the network topology application
- public class Qno5 extends JFrame { 
-     // Create a Graph object to represent the network topology
-     private Graph graph; 
-     // Create a GraphPanel to visualize the network graph
-     private GraphPanel graphPanel; 
- 
-     // Constructor for setting up the user interface
-     public Qno5() { 
-         // Initialize the graph object to manage nodes and edges
-         graph = new Graph(); 
-         // Initialize the GraphPanel for visualizing the network graph
-         graphPanel = new GraphPanel(graph); 
- 
-         // Set up the window title and size
-         setTitle("Network Topology Designer"); 
-         setSize(800, 600); 
-         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Close the window when the user exits
-         setLayout(new BorderLayout()); // Use BorderLayout to organize components
- 
-         // Add the graphPanel to the center of the window to display the network
-         add(graphPanel, BorderLayout.CENTER); 
- 
-         // Create a control panel for buttons to interact with the graph
-         JPanel controlPanel = new JPanel();
-         // Add buttons for adding nodes, adding edges, optimizing the network, and calculating paths
-         JButton addNodeButton = new JButton("Add Node"); 
-         JButton addEdgeButton = new JButton("Add Edge"); 
-         JButton optimizeButton = new JButton("Optimize Network");
-         JButton calculatePathButton = new JButton("Calculate Path"); 
- 
-         // Add the buttons to the control panel
-         controlPanel.add(addNodeButton);
-         controlPanel.add(addEdgeButton);
-         controlPanel.add(optimizeButton);
-         controlPanel.add(calculatePathButton);
-         // Add the control panel to the bottom of the window
-         add(controlPanel, BorderLayout.SOUTH);
- 
-         // Action listener for the "Add Node" button
-         addNodeButton.addActionListener(e -> {
-             // Prompt the user to input a node name
-             String nodeName = JOptionPane.showInputDialog("Enter node name:"); 
-             // If the user provides a valid node name
-             if (nodeName != null && !nodeName.trim().isEmpty()) { 
-                 // Add the node to the graph
-                 graph.addNode(nodeName); 
-                 // Repaint the graph panel to reflect the new node
-                 graphPanel.repaint(); 
-             } else {
-                 // If no valid name is provided, show an error message
-                 JOptionPane.showMessageDialog(null, "Node name cannot be empty."); 
-             }
-         });
- 
-         // Action listener for the "Add Edge" button
-         addEdgeButton.addActionListener(e -> {
-             // Prompt the user for the start node, end node, cost, and bandwidth of the edge
-             String fromNode = JOptionPane.showInputDialog("Enter from node:"); 
-             String toNode = JOptionPane.showInputDialog("Enter to node:"); 
-             String costStr = JOptionPane.showInputDialog("Enter cost:");
-             String bandwidthStr = JOptionPane.showInputDialog("Enter bandwidth:"); 
- 
-             // If all fields are filled, try to parse and add the edge
-             if (fromNode != null && toNode != null && costStr != null && bandwidthStr != null) {
-                 try {
-                     // Convert cost and bandwidth to integers
-                     int cost = Integer.parseInt(costStr); 
-                     int bandwidth = Integer.parseInt(bandwidthStr); 
-                     // If cost or bandwidth is negative, show an error message
-                     if (cost < 0 || bandwidth < 0) { 
-                         JOptionPane.showMessageDialog(null, "Cost and bandwidth must be non-negative."); 
-                     } else {
-                         // Add the edge to the graph
-                         graph.addEdge(fromNode, toNode, cost, bandwidth); 
-                         // Repaint the graph panel to reflect the new edge
-                         graphPanel.repaint(); 
-                     }
-                 } catch (NumberFormatException ex) { 
-                     // Show an error message if the input is not valid
-                     JOptionPane.showMessageDialog(null, "Invalid cost or bandwidth."); 
-                 }
-             } else {
-                 // Show an error message if any field is missing
-                 JOptionPane.showMessageDialog(null, "All fields must be filled."); 
-             }
-         });
- 
-         // Action listener for the "Optimize Network" button
-         optimizeButton.addActionListener(e -> {
-             // Get the minimum spanning tree (MST) edges
-             List<Edge> mstEdges = graph.getMinimumSpanningTree(); 
-             StringBuilder result = new StringBuilder("Minimum Spanning Tree Edges:\n"); 
-             // Display the MST edges in a dialog box
-             for (Edge edge : mstEdges) {
-                 result.append(edge.getDestination().getName()).append(" (Cost: ").append(edge.getCost()).append(")\n"); 
-             }
-             JOptionPane.showMessageDialog(null, result.toString()); 
-         });
- 
-         // Action listener for the "Calculate Path" button
-         calculatePathButton.addActionListener(e -> {
-             // Prompt the user for the start and end nodes for the path
-             String fromNode = JOptionPane.showInputDialog("Enter start node:"); 
-             String toNode = JOptionPane.showInputDialog("Enter end node:"); 
-             // If both nodes are provided
-             if (fromNode != null && toNode != null) { 
-                 // Find the shortest path between the two nodes
-                 List<Node> path = graph.findShortestPath(fromNode, toNode); 
-                 // If a path is found, display it in a dialog box
-                 if (path != null) { 
-                     StringBuilder result = new StringBuilder("Shortest Path:\n");
-                     // Display each node in the shortest path
-                     for (Node node : path) {
-                         result.append(node.getName()).append(" -> "); 
-                     }
-                     result.setLength(result.length() - 4); // Remove the last " -> "
-                     JOptionPane.showMessageDialog(null, result.toString()); 
-                 } else {
-                     // Show a message if no path is found
-                     JOptionPane.showMessageDialog(null, "No path found."); 
-                 }
-             }
-         });
-     }
- 
-     // Main method to launch the GUI application
-     public static void main(String[] args) {
-         SwingUtilities.invokeLater(() -> {
-             Qno5 gui = new Qno5(); 
-             // Make the GUI visible
-             gui.setVisible(true); 
-         });
-     }
- }
- 
- // Graph class to represent the entire network
- class Graph {
-     // A map to store nodes, where the key is the node name and the value is the Node object
-     private final Map<String, Node> nodes = new HashMap<>(); 
- 
-     // Method to add a new node
-     public void addNode(String name) {
-         // Add a node with the specified name
-         nodes.put(name, new Node(name)); 
-     }
- 
-     // Method to add an edge between two nodes
-     public void addEdge(String from, String to, int cost, int bandwidth) {
-         Node source = nodes.get(from); 
-         Node destination = nodes.get(to); 
-         // If both nodes exist in the graph
-         if (source != null && destination != null) { 
-             // Create an edge and add it to the source node's edges
-             source.addEdge(new Edge(destination, cost, bandwidth)); 
-         } else {
-             // Show a message if one or both nodes do not exist
-             JOptionPane.showMessageDialog(null, "One or both nodes do not exist."); 
-         }
-     }
- 
-     // Method to get all the nodes in the graph
-     public Collection<Node> getNodes() {
-         return nodes.values(); 
-     }
- 
-     // Method to get the Minimum Spanning Tree (MST) using Prim’s algorithm
-     public List<Edge> getMinimumSpanningTree() {
-         List<Edge> mstEdges = new ArrayList<>(); 
-         Set<Node> visited = new HashSet<>(); 
-         PriorityQueue<Edge> edgeQueue = new PriorityQueue<>(Comparator.comparingInt(Edge::getCost)); 
- 
-         // If the graph is not empty, start from any node
-         if (!nodes.isEmpty()) { 
-             Node startNode = nodes.values().iterator().next();
-             visited.add(startNode); 
-             edgeQueue.addAll(startNode.getEdges()); 
- 
-             // Add edges to the MST
-             while (!edgeQueue.isEmpty()) {
-                 Edge edge = edgeQueue.poll(); 
-                 Node destination = edge.getDestination(); 
-                 // If the destination node is not already visited, add it to the MST
-                 if (!visited.contains(destination)) { 
-                     visited.add(destination); 
-                     mstEdges.add(edge); 
-                     edgeQueue.addAll(destination.getEdges()); 
-                 }
-             }
-         }
-         return mstEdges; 
-     }
- 
-     // Method to find the shortest path between two nodes using Dijkstra’s algorithm
-     public List<Node> findShortestPath(String startName, String endName) {
-         Node startNode = nodes.get(startName); 
-         Node endNode = nodes.get(endName); 
-         // If either of the nodes does not exist, return null
-         if (startNode == null || endNode == null)
-             return null; 
- 
-         // Maps to store distances and previous nodes
-         Map<Node, Integer> distances = new HashMap<>(); 
-         Map<Node, Node> previousNodes = new HashMap<>(); 
-         PriorityQueue<Node> nodeQueue = new PriorityQueue<>(Comparator.comparingInt(distances::get)); 
- 
-         // Initialize distances for all nodes to a large value
-         for (Node node : nodes.values()) {
-             distances.put(node, Integer.MAX_VALUE); 
-             previousNodes.put(node, null);
-         }
-         // Set the distance of the start node to 0
-         distances.put(startNode, 0); 
-         nodeQueue.add(startNode); 
- 
-         // Dijkstra’s algorithm to find the shortest path
-         while (!nodeQueue.isEmpty()) {
-             Node currentNode = nodeQueue.poll();
-             // If the current node is the destination, break
-             if (currentNode.equals(endNode))
-                 break;
- 
-             // For each edge of the current node, calculate the shortest path
-             for (Edge edge : currentNode.getEdges()) {
-                 Node neighbor = edge.getDestination(); 
-                 int newDist = distances.get(currentNode) + edge.getCost();
-                 // If the new path to the neighbor is shorter, update the distance
-                 if (newDist < distances.get(neighbor)) { 
-                     distances.put(neighbor, newDist); 
-                     previousNodes.put(neighbor, currentNode); 
-                     nodeQueue.add(neighbor); 
-                 }
-             }
-         }
- 
-         // Reconstruct the path from start to end
-         List<Node> path = new ArrayList<>();
-         for (Node at = endNode; at != null; at = previousNodes.get(at)) {
-             path.add(at); 
-         }
-         Collections.reverse(path); // Reverse the path to get the correct order
-         return path.size() > 1 ? path : null; 
-     }
- }
- 
- // Node class representing a server or client in the network
- class Node {
-     private final String name; // Name of the node (e.g., server or client)
-     private final List<Edge> edges = new ArrayList<>(); // List of edges connected to this node
- 
-     // Constructor to initialize the node with its name
-     Node(String name) {
-         this.name = name; 
-     }
- 
-     // Method to add an edge to the node
-     void addEdge(Edge edge) {
-         edges.add(edge); 
-     }
- 
-     // Getter for the node's name
-     public String getName() {
-         return name; 
-     }
- 
-     // Getter for the list of edges connected to this node
-     public List<Edge> getEdges() {
-         return edges; 
-     }
- }
- 
- // Edge class representing a connection between two nodes in the network
- class Edge {
-     private final Node destination; // The destination node of the edge
-     private final int cost; // The cost of the edge
-     private final int bandwidth; // The bandwidth of the edge
- 
-     // Constructor to initialize the edge with a destination, cost, and bandwidth
-     Edge(Node destination, int cost, int bandwidth) {
-         this.destination = destination; 
-         this.cost = cost; 
-         this.bandwidth = bandwidth; 
-     }
- 
-     // Getter for the destination node of the edge
-     public Node getDestination() {
-         return destination;
-     }
- 
-     // Getter for the cost of the edge
-     public int getCost() {
-         return cost; 
-     }
- 
-     // Getter for the bandwidth of the edge
-     public int getBandwidth() {
-         return bandwidth; 
-     }
- }
- 
- // GraphPanel class to visualize the network in a GUI
- class GraphPanel extends JPanel {
-     private final Graph graph; // The graph object to visualize
- 
-     // Constructor to initialize the panel with the graph
-     public GraphPanel(Graph graph) {
-         this.graph = graph; 
-         setBackground(Color.WHITE); // Set the background color of the panel to white
-     }
- 
-     // Override the paintComponent method to draw the graph
-     @Override
-     protected void paintComponent(Graphics g) {
-         super.paintComponent(g); // Call the superclass method
-         drawGraph(g); // Call the method to draw the graph
-     }
- 
-     // Method to draw the graph on the panel
-     private void drawGraph(Graphics g) {
-         int nodeRadius = 20; // Set the radius of nodes
-         int xOffset = 50; // Set the initial X offset for node placement
-         int yOffset = 50; // Set the initial Y offset for node placement
-         int spacing = 100; // Set the spacing between nodes
-         int index = 0; // Initialize the node index
- 
-         // Draw nodes as circles
-         for (Node node : graph.getNodes()) {
-             // Calculate the position of the node
-             int x = xOffset + (index % 5) * spacing; 
-             int y = yOffset + (index / 5) * spacing; 
-             g.fillOval(x, y, nodeRadius, nodeRadius); // Draw the node as a circle
-             g.drawString(node.getName(), x + 5, y + 15); // Draw the node's name next to it
-             index++; // Increment the node index
-         }
- 
-         // Draw edges as lines between nodes
-         for (Node node : graph.getNodes()) {
-             // Get the position of the node
-             int fromX = xOffset + (index % 5) * spacing; 
-             int fromY = yOffset + (index / 5) * spacing; 
-             // Draw lines for each edge of the node
-             for (Edge edge : node.getEdges()) {
-                 // Calculate the position of the destination node
-                 int toX = xOffset + (index % 5) * spacing;
-                 int toY = yOffset + (index / 5) * spacing;
-                 g.drawLine(fromX, fromY, toX, toY); // Draw the edge as a line
-                 g.drawString(String.format("Cost: %d", edge.getCost()), (fromX + toX) / 2, (fromY + toY) / 2);
-                 // Display the cost of the edge in the middle of the line
-             }
-         }
-     }
- }
- 
+
+public class QNo5 extends JPanel { // Defining the main class that extends JPanel to allow custom painting on the panel.
+    private JFrame frame; // Declaring the JFrame for the main window.
+    private JButton addNodeBtn, addEdgeBtn, optimizeBtn, shortestPathBtn; // Declaring buttons for different actions.
+    private Map<String, Map<String, Integer>> graph; // Graph structure represented as a Map of nodes, where each node points to another node with a cost (edge weight).
+    private Map<String, Point> nodePositions; // Map to store positions of nodes (used for visualizing nodes on the panel).
+    private Random random = new Random(); // Creating a Random object to generate random positions for nodes.
+
+    public QNo5() { // Constructor for initializing the frame, buttons, and setting up the GUI.
+        frame = new JFrame("Network Topology Optimizer"); // Initialize the JFrame with a title.
+        graph = new HashMap<>(); // Initialize the graph as a HashMap.
+        nodePositions = new HashMap<>(); // Initialize the node positions as a HashMap.
+
+        JPanel controlPanel = new JPanel(); // Create a panel to hold the control buttons.
+        addNodeBtn = new JButton("Add Node"); // Initialize the "Add Node" button.
+        addEdgeBtn = new JButton("Add Edge"); // Initialize the "Add Edge" button.
+        optimizeBtn = new JButton("Optimize Network"); // Initialize the "Optimize Network" button.
+        shortestPathBtn = new JButton("Find Shortest Path"); // Initialize the "Find Shortest Path" button.
+
+        // Adding buttons to the control panel.
+        controlPanel.add(addNodeBtn);
+        controlPanel.add(addEdgeBtn);
+        controlPanel.add(optimizeBtn);
+        controlPanel.add(shortestPathBtn);
+
+        // Adding the control panel to the top (North) of the frame.
+        frame.add(controlPanel, BorderLayout.NORTH);
+        // Adding the main panel (QN5 class) to the center of the frame.
+        frame.add(this, BorderLayout.CENTER);
+        frame.setSize(700, 500); // Setting the size of the window.
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Defining what happens when the user closes the window.
+        frame.setVisible(true); // Making the frame visible.
+
+        // Defining the actions for each button.
+        addNodeBtn.addActionListener(e -> addNode()); // Action for adding a node.
+        addEdgeBtn.addActionListener(e -> addEdge()); // Action for adding an edge.
+        optimizeBtn.addActionListener(e -> optimizeNetwork()); // Action for optimizing the network.
+        shortestPathBtn.addActionListener(e -> findShortestPath()); // Action for finding the shortest path.
+    }
+
+    // Method to add a new node to the graph.
+    private void addNode() {
+        String nodeName = JOptionPane.showInputDialog("Enter node name:"); // Prompting user to enter node name.
+        if (nodeName != null && !nodeName.trim().isEmpty() && !graph.containsKey(nodeName)) { // Check for valid input and uniqueness.
+            graph.put(nodeName, new HashMap<>()); // Add node to the graph with an empty edge list.
+            nodePositions.put(nodeName, new Point(random.nextInt(500), random.nextInt(400))); // Assign a random position for visualization.
+            repaint(); // Refresh the panel to redraw the graph with the new node.
+        } else {
+            JOptionPane.showMessageDialog(frame, "Invalid or duplicate node name!"); // Show error message if the node name is invalid.
+        }
+    }
+
+    // Method to add an edge between two nodes.
+    private void addEdge() {
+        String node1 = JOptionPane.showInputDialog("Enter first node:"); // Prompt user for the first node.
+        String node2 = JOptionPane.showInputDialog("Enter second node:"); // Prompt user for the second node.
+        if (graph.containsKey(node1) && graph.containsKey(node2) && !node1.equals(node2)) { // Check if nodes exist and are not the same.
+            try {
+                int cost = Integer.parseInt(JOptionPane.showInputDialog("Enter cost:")); // Prompt for edge cost and parse it.
+                graph.get(node1).put(node2, cost); // Add the edge from node1 to node2 with the given cost.
+                graph.get(node2).put(node1, cost); // Add the edge from node2 to node1 for an undirected graph.
+                repaint(); // Refresh the panel to redraw the graph with the new edge.
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(frame, "Invalid cost input!"); // Handle invalid input for cost.
+            }
+        } else {
+            JOptionPane.showMessageDialog(frame, "Invalid nodes!"); // Show error message if the nodes are invalid.
+        }
+    }
+
+    // Method to optimize the network (finding a Minimum Spanning Tree).
+    private void optimizeNetwork() {
+        if (graph.size() > 1) { // Check if the graph has more than one node.
+            // Placeholder for network optimization (MST logic would go here).
+            JOptionPane.showMessageDialog(frame, "Network optimization logic (MST) would go here!"); // Placeholder message.
+        } else {
+            JOptionPane.showMessageDialog(frame, "Graph is not connected!"); // Show error if the graph is too small to optimize.
+        }
+    }
+
+    // Method to find the shortest path between two nodes using Dijkstra's algorithm.
+    private void findShortestPath() {
+        String start = JOptionPane.showInputDialog("Enter start node:"); // Prompt user for start node.
+        String end = JOptionPane.showInputDialog("Enter end node:"); // Prompt user for end node.
+        if (graph.containsKey(start) && graph.containsKey(end)) { // Check if both nodes exist.
+            Map<String, Integer> distances = new HashMap<>(); // Initialize a map to store distances of nodes.
+            for (String node : graph.keySet()) {
+                distances.put(node, Integer.MAX_VALUE); // Set initial distance for all nodes to infinity.
+            }
+            distances.put(start, 0); // Set the start node distance to 0.
+            PriorityQueue<String> pq = new PriorityQueue<>(Comparator.comparingInt(distances::get)); // Priority queue to get the node with the smallest distance.
+            pq.add(start); // Add the start node to the queue.
+
+            while (!pq.isEmpty()) { // While there are nodes to process.
+                String currentNode = pq.poll(); // Get the node with the smallest distance.
+                if (currentNode.equals(end)) { // If the current node is the end node, exit the loop.
+                    break;
+                }
+                for (String neighbor : graph.get(currentNode).keySet()) { // For each neighboring node of the current node.
+                    int newDist = distances.get(currentNode) + graph.get(currentNode).get(neighbor); // Calculate new distance to the neighbor.
+                    if (newDist < distances.get(neighbor)) { // If the new distance is smaller, update the neighbor's distance.
+                        distances.put(neighbor, newDist);
+                        pq.add(neighbor); // Add the neighbor to the queue for further processing.
+                    }
+                }
+            }
+
+            JOptionPane.showMessageDialog(frame, "Shortest Path Distance: " + distances.get(end)); // Show the shortest path distance.
+        } else {
+            JOptionPane.showMessageDialog(frame, "Invalid nodes!"); // Show error if the nodes are invalid.
+        }
+    }
+
+    // Method to paint the graph (visualization of nodes and edges).
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g); // Call the superclass method for proper painting setup.
+        g.setColor(Color.BLACK); // Set the color for drawing edges.
+
+        // Draw edges between nodes.
+        for (String source : graph.keySet()) {
+            Point p1 = nodePositions.get(source); // Get the position of the source node.
+            for (String target : graph.get(source).keySet()) { // For each neighboring node.
+                Point p2 = nodePositions.get(target); // Get the position of the target node.
+                if (p1 != null && p2 != null) {
+                    g.drawLine(p1.x, p1.y, p2.x, p2.y); // Draw a line between the nodes.
+                    int midX = (p1.x + p2.x) / 2; // Calculate the midpoint of the edge.
+                    int midY = (p1.y + p2.y) / 2; // Calculate the midpoint of the edge.
+                    g.drawString(String.valueOf(graph.get(source).get(target)), midX, midY); // Draw the edge cost at the midpoint.
+                }
+            }
+        }
+
+        // Draw nodes as circles and label them with their names.
+        for (Map.Entry<String, Point> entry : nodePositions.entrySet()) {
+            g.setColor(Color.BLUE); // Set the color for the nodes.
+            Point p = entry.getValue(); // Get the position of the node.
+            g.fillOval(p.x - 10, p.y - 10, 20, 20); // Draw a filled circle for the node.
+            g.setColor(Color.WHITE); // Set the color for the node label.
+            g.drawString(entry.getKey(), p.x - 5, p.y + 5); // Draw the node name at its position.
+        }
+    }
+
+    // Main method to run the program.
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(QNo5::new); // Ensure that the GUI is created on the Event Dispatch Thread.
+    }
+}
