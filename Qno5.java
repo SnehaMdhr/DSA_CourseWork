@@ -45,16 +45,18 @@ The network graph is visually represented using Swing components, and users can 
  import java.awt.*;  // Import the AWT package for GUI components
  import java.util.*; // Import utility classes like HashMap, List
  import javax.swing.*; // Import Swing components for GUI elements
+ import java.util.List; // Explicitly import the List interface
+
  
  // Main class for the network topology application
- public class QNo5 extends JFrame { 
+ public class Qno5 extends JFrame { 
      // Create a Graph object to represent the network topology
      private Graph graph; 
      // Create a GraphPanel to visualize the network graph
      private GraphPanel graphPanel; 
  
      // Constructor for setting up the user interface
-     public QNo5() { 
+     public Qno5() { 
          // Initialize the graph object to manage nodes and edges
          graph = new Graph(); 
          // Initialize the GraphPanel for visualizing the network graph
@@ -175,7 +177,7 @@ The network graph is visually represented using Swing components, and users can 
      // Main method to launch the GUI application
      public static void main(String[] args) {
          SwingUtilities.invokeLater(() -> {
-             QNo5 gui = new QNo5(); 
+             Qno5 gui = new Qno5(); 
              // Make the GUI visible
              gui.setVisible(true); 
          });
