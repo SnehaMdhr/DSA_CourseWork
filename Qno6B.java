@@ -1,145 +1,189 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.*;
-
-/**
- * Multi-threaded web crawler that fetches web pages, extracts links, and crawls new pages.
+/*Question no 6
+ * b)
+Scenario: A Multithreaded Web Crawler
+Problem:
+You need to crawl a large number of web pages to gather data or index content. Crawling each page
+sequentially can be time-consuming and inefficient.
+Goal:
+Create a web crawler application that can crawl multiple web pages concurrently using multithreading to
+improve performance.
+Tasks:
+Design the application:
+Create a data structure to store the URLs to be crawled.
+Implement a mechanism to fetch web pages asynchronously.
+Design a data storage mechanism to save the crawled data.
+Create a thread pool:
+Use the ExecutorService class to create a thread pool for managing multiple threads.
+Submit tasks:
+For each URL to be crawled, create a task (e.g., a Runnable or Callable object) that fetches the web page
+and processes the content.
+Submit these tasks to the thread pool for execution.
+Handle responses:
+Process the fetched web pages, extracting relevant data or indexing the content.
+Handle errors or exceptions that may occur during the crawling process.
+Manage the crawling queue:
+Implement a mechanism to manage the queue of URLs to be crawled, such as a priority queue or a
+breadth-first search algorithm.
+By completing these tasks, you will create a multithreaded web crawler that can efficiently crawl large
+numbers of web page
  */
-public class Qno6B {
-    private static final int THREAD_POOL_SIZE = 5; // Number of concurrent threads
-    private static final Set<String> visitedUrls = new HashSet<>(); // Set to track visited URLs (to prevent duplication)
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE); // Thread pool to manage concurrency
 
-    public static void main(String[] args) {
-        // Define the seed URL to start crawling
-        String seedUrl = "https://example.com";
-        
-        // Add the seed URL to the visited set to avoid recrawling
-        visitedUrls.add(seedUrl);
-        
-        // Submit the first crawling task to the thread pool
-        threadPool.submit(new CrawlTask(seedUrl));
+/*
+ * Implementation of a Multi-threaded Web Crawler
+ * -----------------------------------------------
+ * This Java program implements a basic multi-threaded web crawler using the following components:
+ * - `ExecutorService`: A thread pool to handle concurrent page fetching.
+ * - `ConcurrentLinkedQueue`: A thread-safe queue for storing URLs to be visited.
+ * - `synchronizedSet`: A thread-safe set to track visited URLs.
+ * - `URL` and `BufferedReader`: To fetch and read web page content.
+ * - `FileWriter`: To save crawled data into a text file.
+ *
+ * Working:
+ * 1. The crawler starts from a given URL and extracts links.
+ * 2. It uses multiple threads to fetch and parse pages concurrently.
+ * 3. Extracted links are added to the queue if they haven’t been visited.
+ * 4. The content of each page is stored in a text file.
+ * 5. The process continues until the maximum number of pages is reached.
+ */
 
-        // Allow crawling for a limited time (5 seconds), then shut down
-        try {
-            Thread.sleep(5000); // Wait for 5 seconds before shutting down
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        
-        // Shutdown the thread pool after crawling
-        threadPool.shutdown();
-    }
-
-    /**
-     * Inner class that defines the crawling task.
-     */
-    static class CrawlTask implements Runnable {
-        private final String url; // URL to crawl
-
-        public CrawlTask(String url) {
-            this.url = url; // Initialize with the given URL
-        }
-
-        @Override
-        public void run() {
-            try {
-                // Fetch the web page content
-                String content = fetchWebPage(url);
-
-                // Extract and print the page title
-                String title = extractTitle(content);
-                System.out.println("Crawled: " + url + " -> Title: " + title);
-
-                // Extract new URLs from the page
-                Set<String> newUrls = extractUrls(content);
-
-                // Submit new URLs for crawling
-                for (String newUrl : newUrls) {
-                    synchronized (visitedUrls) { // Ensure thread-safe access to shared data
-                        if (!visitedUrls.contains(newUrl)) { // Check if URL is already visited
-                            visitedUrls.add(newUrl); // Mark URL as visited
-                            threadPool.submit(new CrawlTask(newUrl)); // Submit a new crawl task for this URL
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Error crawling " + url + ": " + e.getMessage());
-            }
-        }
-
-        /**
-         * Fetches the content of a web page from the given URL.
-         */
-        private String fetchWebPage(String url) throws IOException {
-            // Open an HTTP connection to the URL
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET"); // Set HTTP method to GET
-
-            // Read the response
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder content = new StringBuilder();
-            String line;
-
-            // Read line by line and append to content
-            while ((line = reader.readLine()) != null) {
-                content.append(line);
-            }
-            reader.close(); // Close the reader
-            
-            return content.toString(); // Return the fetched content
-        }
-
-        /**
-         * Extracts the title from the HTML content.
-         */
-        private String extractTitle(String content) {
-            int titleStart = content.indexOf("<title>"); // Find the start index of <title> tag
-            int titleEnd = content.indexOf("</title>"); // Find the end index of </title> tag
-            
-            if (titleStart != -1 && titleEnd != -1) {
-                return content.substring(titleStart + 7, titleEnd).trim(); // Extract and return title
-            }
-            return "No Title"; // Return default value if no title found
-        }
-
-        /**
-         * Extracts URLs from the HTML content by looking for 'href' attributes.
-         */
-        private Set<String> extractUrls(String content) {
-            Set<String> urls = new HashSet<>(); // Set to store unique URLs
-            int hrefStart;
-            int hrefEnd = 0;
-            
-            // Loop to find all occurrences of href="URL"
-            while ((hrefStart = content.indexOf("href=\"", hrefEnd)) != -1) {
-                hrefEnd = content.indexOf("\"", hrefStart + 6); // Find the closing quote of href
-                if (hrefEnd != -1) {
-                    String newUrl = content.substring(hrefStart + 6, hrefEnd); // Extract the URL
-                    
-                    // Only add valid absolute URLs
-                    if (newUrl.startsWith("http")) {
-                        urls.add(newUrl);
-                    }
-                }
-            }
-            return urls; // Return the set of extracted URLs
-        }
-    }
-}
-
+ import java.util.*;  // Importing utility classes for collections
+ import java.util.concurrent.*;  // Importing concurrent collections and thread pools
+ import java.net.*;  // Importing classes for handling URLs
+ import java.io.*;  // Importing classes for file handling and input/output operations
+ 
+ class Qno6B {
+     // A thread-safe set to store visited URLs and prevent duplicates
+     private final Set<String> visitedUrls = Collections.synchronizedSet(new HashSet<>());
+ 
+     // A thread-safe queue to store URLs yet to be crawled
+     private final Queue<String> urlQueue = new ConcurrentLinkedQueue<>();
+ 
+     // Thread pool for concurrent execution of tasks
+     private final ExecutorService threadPool;
+ 
+     // Maximum number of retries for failed page fetches
+     private final int maxRetries = 2;
+ 
+     // Constructor: Initializes the thread pool with the specified number of threads
+     public Qno6B(int threadCount) {
+         this.threadPool = Executors.newFixedThreadPool(threadCount);
+     }
+ 
+     // Method to start the crawling process
+     public void startCrawling(String startUrl, int maxPages) {
+         // Add the initial URL to the queue
+         urlQueue.add(startUrl);
+ 
+         // Continue crawling while there are URLs in the queue and the page limit is not exceeded
+         while (!urlQueue.isEmpty() && visitedUrls.size() < maxPages) {
+             String url = urlQueue.poll(); // Retrieve and remove the next URL from the queue
+ 
+             // If the URL is valid and hasn't been visited
+             if (url != null && !visitedUrls.contains(url)) {
+                 visitedUrls.add(url); // Mark the URL as visited
+ 
+                 // Execute the page fetch in a separate thread
+                 threadPool.execute(() -> fetchPage(url, 0));
+             }
+         }
+         // Shutdown the thread pool once the crawling is complete
+         threadPool.shutdown();
+     }
+ 
+     // Method to fetch a web page and extract URLs
+     private void fetchPage(String url, int retryCount) {
+         try {
+             System.out.println("Crawling: " + url); // Print the URL being crawled
+ 
+             // Create a URL object for the given address
+             URL website = new URL(url);
+ 
+             // Open a stream to read the page content
+             BufferedReader reader = new BufferedReader(new InputStreamReader(website.openStream()));
+ 
+             StringBuilder content = new StringBuilder(); // StringBuilder to store page content
+             String line;
+ 
+             // Read the page line by line
+             while ((line = reader.readLine()) != null) {
+                 content.append(line).append("\n"); // Append the line to content
+                 extractUrls(line); // Extract URLs from the current line
+             }
+ 
+             reader.close(); // Close the reader
+ 
+             savePageContent(url, content.toString()); // Save the page content to a file
+ 
+         } catch (Exception e) {
+             System.out.println("Failed to crawl: " + url); // Print failure message
+ 
+             // Retry fetching the page if the max retry count is not reached
+             if (retryCount < maxRetries) {
+                 System.out.println("Retrying: " + url);
+                 fetchPage(url, retryCount + 1); // Recursively retry fetching the page
+             }
+         }
+     }
+ 
+     // Method to extract URLs from the page content
+     private void extractUrls(String content) {
+         // Regular expression to match URLs
+         String regex = "https?://[\\w\\.-]+";
+ 
+         // Scanner to find URLs in the content
+         Scanner scanner = new Scanner(content);
+ 
+         // Search for URLs using the regex pattern
+         while (scanner.findInLine(regex) != null) {
+             String foundUrl = scanner.match().group(); // Extract matched URL
+ 
+             // If the URL has not been visited, add it to the queue
+             if (!visitedUrls.contains(foundUrl)) {
+                 urlQueue.add(foundUrl);
+                 System.out.println("Found URL: " + foundUrl); // Print the found URL
+             }
+         }
+ 
+         scanner.close(); // Close the scanner
+     }
+ 
+     // Method to save the page content to a file
+     private void savePageContent(String url, String content) {
+         try {
+             String fileName = "crawled_data.txt"; // Name of the file to store crawled data
+ 
+             // Open the file in append mode
+             FileWriter writer = new FileWriter(fileName, true);
+ 
+             // Write the URL and its corresponding content to the file
+             writer.write("URL: " + url + "\n" + content + "\n\n");
+ 
+             writer.close(); // Close the writer
+         } catch (IOException e) {
+             System.out.println("Error saving data for: " + url); // Print error message
+         }
+     }
+ 
+     // Main method to start the crawler
+     public static void main(String[] args) {
+         Qno6B crawler = new Qno6B(5); // Create a crawler with 5 threads
+         crawler.startCrawling("https://www.wikipedia.org", 10); // Start crawling from Wikipedia
+     }
+ }
+ 
 // Output
-// Crawled: https://example.com -> Title: Example Domain
-// Crawled: https://www.iana.org/domains/example -> Title: 301 Moved Permanently
-// Crawled: http://www.iana.org/help/example-domains -> Title: Example Domains
-// Error crawling http://www.icann.org/: Server returned HTTP response code: 403 for URL: http://www.icann.org/
-// Crawled: https://www.icann.org/privacy/tos -> Title: TERMS OF SERVICE - ICANN
-// Error crawling https://www.icann.org/privacy/tos: Task java.util.concurrent.FutureTask@54085258[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@7b2ae49e[Wrapped task = Qno6B$CrawlTask@3758610a]] rejected from java.util.concurrent.ThreadPoolExecutor@27716f4[Shutting down, pool size = 3, active threads = 3, queued tasks = 0, completed tasks = 4]
-// Crawled: https://www.icann.org/privacy/policy -> Title: PRIVACY POLICY - ICANN
-// Error crawling https://www.icann.org/privacy/policy: Task java.util.concurrent.FutureTask@2221e2e5[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@667b2c4f[Wrapped task = Qno6B$CrawlTask@52fd126a]] rejected from java.util.concurrent.ThreadPoolExecutor@27716f4[Shutting down, pool size = 2, active threads = 2, queued tasks = 0, completed tasks = 5]
-// Error crawling http://pti.icann.org: Connection refused: connect
+// Crawling: https://www.wikipedia.org
+// Found URL: http://www.w3.org
+// Found URL: http://www.w3.org
+// Found URL: http://www.w3.org
+// Found URL: http://www.w3.org
+// Found URL: https://wikis.world
+// Found URL: https://upload.wikimedia.org
+// Found URL: https://meta.wikimedia.org
+// Found URL: https://donate.wikimedia.org
+// Found URL: https://en.wikipedia.org
+// Found URL: https://play.google.com
+// Found URL: https://itunes.apple.com
+// Found URL: https://creativecommons.org
+// Found URL: https://foundation.wikimedia.org
+// Found URL: https://foundation.wikimedia.org
