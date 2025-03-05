@@ -3,14 +3,14 @@ import java.util.HashMap;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 
-public class NetworkTopologyGUI extends JFrame {
+public class Qno5 extends JFrame {
     
     private mxGraph graph;
     private Object parent;
     private HashMap<String, Object> nodes;  // Stores nodes (servers/clients)
     private HashMap<String, Integer> edges; // Stores edges (connections with latency)
 
-    public NetworkTopologyGUI() {
+    public Qno5() {
         super("Network Topology with HashMap");
         graph = new mxGraph();
         parent = graph.getDefaultParent();
@@ -51,7 +51,7 @@ public class NetworkTopologyGUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            NetworkTopologyGUI frame = new NetworkTopologyGUI();
+            Qno5 frame = new Qno5();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(500, 300);
             frame.setVisible(true);
